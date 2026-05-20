@@ -65,6 +65,10 @@ The platform is intentionally designed to remain:
 
 # 🏗 Recommended Architecture
 
+<p align="center">
+  <img src="docs/screenshots/architecture-diagram.png" width="1000">
+</p>
+
 Recommended deployment model:
 
 | System | Purpose |
@@ -150,7 +154,7 @@ ssh-copy-id scott@192.168.80.88
 Verify access:
 
 ```bash
-ssh scott@192.168.80.88
+ssh scott@192.168.80.88 "hostname && whoami"
 ```
 
 Expected:
@@ -275,89 +279,98 @@ incus shell IncusSimplestreams
 
 ---
 
-# 📦 Install Repository Packages
+# 🛠 Create Bootstrap Script
 
 ```bash
+nano bootstrap-simplestreams.sh
+```
+
+Paste:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+WEB_ROOT="${WEB_ROOT:-/var/www/html}"
+IMAGE_DIR="${IMAGE_DIR:-$WEB_ROOT/images}"
+STREAMS_DIR="${STREAMS_DIR:-$WEB_ROOT/streams}"
+REPO_USER="${REPO_USER:-$USER}"
+
+echo "=== ScottiBYTE Incus Forge SimpleStreams Bootstrap ==="
+
+echo "[1/8] Installing required packages..."
 sudo apt update
+sudo apt install -y nginx xz-utils python3 python3-yaml incus-extra openssh-server curl ca-certificates rsync jq
 
-sudo apt install -y \
-    nginx \
-    rsync \
-    jq \
-    xz-utils \
-    openssh-server
+echo "[2/8] Enabling SSH..."
+sudo systemctl enable --now ssh || sudo systemctl enable --now sshd
+
+echo "[3/8] Enabling nginx..."
+sudo systemctl enable --now nginx
+
+echo "[4/8] Creating repository directories..."
+sudo mkdir -p "$IMAGE_DIR"
+sudo mkdir -p "$STREAMS_DIR/v1"
+
+echo "[5/8] Setting ownership and permissions..."
+sudo chown -R "$REPO_USER:$REPO_USER" "$WEB_ROOT"
+sudo chmod -R 775 "$WEB_ROOT"
+
+echo "[6/8] Creating metadata files..."
+
+if [ ! -f "$STREAMS_DIR/v1/index.json" ]; then
+cat > "$STREAMS_DIR/v1/index.json" <<'JSON'
+{"index":{"images":{"datatype":"image-downloads","path":"streams/v1/images.json","products":[],"format":"products:1.0"}},"format":"index:1.0"}
+JSON
+fi
+
+if [ ! -f "$STREAMS_DIR/v1/images.json" ]; then
+cat > "$STREAMS_DIR/v1/images.json" <<'JSON'
+{"content_id":"images","datatype":"image-downloads","format":"products:1.0","products":{}}
+JSON
+fi
+
+echo "[7/8] Validating repository..."
+command -v incus-simplestreams >/dev/null
+command -v xz >/dev/null
+command -v nginx >/dev/null
+
+echo "[8/8] Bootstrap complete."
+
+echo
+echo "Repository ready."
+echo
+echo "Next step:"
+echo "ssh-copy-id $REPO_USER@<repository-ip>"
+```
+
+Save file.
+
+---
+
+# 🚀 Run Bootstrap Script
+
+```bash
+chmod +x bootstrap-simplestreams.sh
+
+REPO_USER=scott WEB_ROOT=/var/www/html ./bootstrap-simplestreams.sh
 ```
 
 ---
 
-# 📦 Create Repository Directory
+# 🌐 Verify Repository Access
 
-```bash
-sudo mkdir -p /var/www/html/images
-
-sudo chown -R scott:scott /var/www/html/images
-```
-
----
-
-# 🌐 Configure NGINX
-
-Edit:
-
-```bash
-sudo nano /etc/nginx/sites-available/default
-```
-
-Example configuration:
-
-```nginx
-server {
-    listen 80 default_server;
-
-    root /var/www/html;
-
-    autoindex on;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-```
-
-Restart nginx:
-
-```bash
-sudo systemctl restart nginx
-```
-
-Verify web access:
+Open browser:
 
 ```text
-http://YOUR-SERVER-IP/images
+http://YOUR-REPOSITORY-IP/images
 ```
 
----
+Verify metadata:
 
-# 🛠 Bootstrap Script Support
-
-Incus Forge includes helper scripts for repository setup and maintenance.
-
-Example structure:
-
-```text
-scripts/
-├── bootstrap-simplestreams.sh
-├── healthcheck.sh
-└── refresh-repository.sh
+```bash
+curl http://YOUR-REPOSITORY-IP/streams/v1/index.json
 ```
-
-The bootstrap script automates:
-
-- Repository directory creation
-- Permission configuration
-- NGINX setup
-- Required package installation
-- Metadata structure preparation
 
 ---
 
@@ -408,6 +421,32 @@ incus remote list
 ```bash
 incus image list scottibyte-images:
 ```
+
+---
+
+# 📸 Dashboard Screenshots
+
+## Main Dashboard
+
+<p align="center">
+  <img src="docs/screenshots/main-dashboard.png" width="1200">
+</p>
+
+---
+
+## Snapshot Publishing
+
+<p align="center">
+  <img src="docs/screenshots/snapshot-publish.png" width="1200">
+</p>
+
+---
+
+## Repository Management
+
+<p align="center">
+  <img src="docs/screenshots/repository-management.png" width="1200">
+</p>
 
 ---
 
