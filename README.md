@@ -8,6 +8,8 @@ Build • Publish • Distribute Incus Custom Images
 
 ScottiBYTE Incus Forge is a lightweight Home Lab focused web application for publishing, managing, and distributing custom Incus images through SimpleStreams repositories.
 
+<img src="https://raw.githubusercontent.com/ScottiBYTE/incusforge/main/images/dashboard.png" width="1400">
+
 Incus Forge allows Home Labbers and administrators to:
 
 - Publish running Incus containers as reusable images
