@@ -1,15 +1,6 @@
-<p align="center">
-  <h1 align="center">ScottiBYTE Incus Forge</h1>
-  <p align="center">
-    Build • Publish • Distribute Incus Custom Images
-  </p>
-</p>
+# ScottiBYTE Incus Forge
 
----
-
-<p align="center">
-  <img src="docs/screenshots/main-dashboard.png" width="1200">
-</p>
+Build • Publish • Distribute Incus Custom Images
 
 ---
 
@@ -74,10 +65,6 @@ The platform is intentionally designed to remain:
 
 # 🏗 Recommended Architecture
 
-<p align="center">
-  <img src="docs/screenshots/architecture-diagram.png" width="1000">
-</p>
-
 Recommended deployment model:
 
 | System | Purpose |
@@ -85,18 +72,6 @@ Recommended deployment model:
 | IncusForge | Web UI and image management |
 | IncusSimplestreams | SimpleStreams repository |
 | Existing Incus Hosts | Source containers and VMs |
-
----
-
-# 📦 Recommended Deployment Model
-
-Separate containers are strongly recommended.
-
-| Container | Purpose |
-|---|---|
-| IncusForge | Runs web application |
-| IncusSimplestreams | Hosts image repository |
-| Production Incus Hosts | Existing infrastructure |
 
 Benefits:
 
@@ -115,6 +90,12 @@ Benefits:
 
 ```bash
 incus launch images:ubuntu/26.04 IncusForge
+```
+
+Enter shell:
+
+```bash
+incus shell IncusForge
 ```
 
 ---
@@ -181,102 +162,23 @@ scott
 
 ---
 
-# 🐳 Docker Deployment
+# 📦 Create IncusForge Project Directory
 
-## Project Structure
+```bash
+mkdir -p ~/incusforge
 
-```text
-incusforge/
-├── config.json
-├── docker-compose.yml
-├── Dockerfile
-├── index.html
-├── package.json
-├── package-lock.json
-├── server.js
-├── public/
-├── scripts/
-└── docs/
-    └── screenshots/
+cd ~/incusforge
 ```
 
 ---
 
-## Dockerfile
+# 📦 Create config.json
 
-```dockerfile
-FROM ubuntu:26.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt update && apt install -y \
-    nodejs \
-    npm \
-    incus-client \
-    openssh-client \
-    rsync \
-    jq \
-    xz-utils \
-    ca-certificates \
-    curl \
-    && apt clean
-
-RUN groupadd -g 1001 scott \
-    && useradd -m -u 1001 -g 1001 -s /bin/bash scott
-
-WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm install --omit=dev
-
-COPY . .
-
-RUN chown -R scott:scott /app
-
-USER scott
-
-EXPOSE 3030
-
-CMD ["node", "server.js"]
+```bash
+nano config.json
 ```
 
----
-
-## docker-compose.yml
-
-```yaml
-services:
-  incusforge:
-    image: scottibyte/incusforge:latest
-    build: .
-
-    container_name: incusforge
-
-    restart: unless-stopped
-
-    ports:
-      - "3030:3030"
-
-    environment:
-      NODE_ENV: production
-
-    volumes:
-      - ./config.json:/app/config.json
-      - ${HOME}/.config/incus:/incus-client:ro
-      - ${HOME}/.ssh:/home/scott/.ssh:ro
-
-    networks:
-      - incusforge
-
-networks:
-  incusforge:
-    driver: bridge
-```
-
----
-
-## config.json
+Paste:
 
 ```json
 {
@@ -291,25 +193,53 @@ networks:
 }
 ```
 
+Save file.
+
 ---
 
-## Build Container
+# 🐳 Create docker-compose.yml
 
 ```bash
-docker compose build --no-cache
+nano docker-compose.yml
 ```
+
+Paste:
+
+```yaml
+services:
+  incusforge:
+    image: scottibyte/incusforge:latest
+
+    container_name: incusforge
+
+    restart: unless-stopped
+
+    ports:
+      - "3030:3030"
+
+    environment:
+      PORT: "3030"
+      HOME: /home/scott
+      INCUS_CONF: /incus-client
+      CONFIG_PATH: /app/config.json
+
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ${HOME}/.config/incus:/incus-client:ro
+      - ${HOME}/.ssh:/home/scott/.ssh:ro
+```
+
+Save file.
 
 ---
 
-## Start Application
+# 🚀 Start Incus Forge
 
 ```bash
 docker compose up -d
 ```
 
----
-
-## Verify Logs
+Verify logs:
 
 ```bash
 docker logs -f incusforge
@@ -321,19 +251,31 @@ Expected:
 ScottiBYTE Incus Forge running on port 3030
 ```
 
+Open browser:
+
+```text
+http://YOUR-IP:3030
+```
+
 ---
 
-# 📦 SimpleStreams Repository Setup
+# 📦 Create SimpleStreams Repository Server
 
-## Create Repository Container
+Create repository container:
 
 ```bash
 incus launch images:ubuntu/26.04 IncusSimplestreams
 ```
 
+Enter shell:
+
+```bash
+incus shell IncusSimplestreams
+```
+
 ---
 
-## Install Required Packages
+# 📦 Install Repository Packages
 
 ```bash
 sudo apt update
@@ -348,7 +290,7 @@ sudo apt install -y \
 
 ---
 
-## Create Repository Directory
+# 📦 Create Repository Directory
 
 ```bash
 sudo mkdir -p /var/www/html/images
@@ -358,7 +300,7 @@ sudo chown -R scott:scott /var/www/html/images
 
 ---
 
-## Configure NGINX
+# 🌐 Configure NGINX
 
 Edit:
 
@@ -366,7 +308,7 @@ Edit:
 sudo nano /etc/nginx/sites-available/default
 ```
 
-Example:
+Example configuration:
 
 ```nginx
 server {
@@ -388,9 +330,15 @@ Restart nginx:
 sudo systemctl restart nginx
 ```
 
+Verify web access:
+
+```text
+http://YOUR-SERVER-IP/images
+```
+
 ---
 
-# 🛠 SimpleStreams Bootstrap Script
+# 🛠 Bootstrap Script Support
 
 Incus Forge includes helper scripts for repository setup and maintenance.
 
@@ -413,7 +361,7 @@ The bootstrap script automates:
 
 ---
 
-# 🌐 Add Repository To Incus
+# 🌐 Add SimpleStreams Repository To Incus
 
 ```bash
 incus remote add scottibyte-images \
@@ -460,32 +408,6 @@ incus remote list
 ```bash
 incus image list scottibyte-images:
 ```
-
----
-
-# 📸 Dashboard Screenshots
-
-## Main Dashboard
-
-<p align="center">
-  <img src="docs/screenshots/main-dashboard.png" width="1200">
-</p>
-
----
-
-## Snapshot Publishing
-
-<p align="center">
-  <img src="docs/screenshots/snapshot-publish.png" width="1200">
-</p>
-
----
-
-## Repository Management
-
-<p align="center">
-  <img src="docs/screenshots/repository-management.png" width="1200">
-</p>
 
 ---
 
