@@ -189,12 +189,14 @@ Paste:
 ```json
 {
   "port": 3030,
-
   "simplestreams": {
-    "repositoryName": "scottibyte-images",
-    "repositoryHost": "192.168.80.88",
-    "repositoryUser": "scott",
-    "repositoryPath": "/var/www/html/images"
+    "name": "scottibyte",
+    "publicUrl": "https://images.mydomain.com",
+    "sshHost": "172.16.2.111",
+    "sshUser": "scott",
+    "webRoot": "/var/www/html",
+    "imageDir": "/var/www/html/images",
+    "streamsDir": "/var/www/html/streams"
   }
 }
 ```
