@@ -65,12 +65,6 @@ The platform is intentionally designed to remain:
 
 ---
 
-# 🏗 Recommended Architecture
-
-<p align="center">
-  <img src="docs/screenshots/architecture-diagram.png" width="1000">
-</p>
-
 Recommended deployment model:
 
 | System | Purpose |
@@ -425,32 +419,6 @@ incus remote list
 ```bash
 incus image list scottibyte-images:
 ```
-
----
-
-# 📸 Dashboard Screenshots
-
-## Main Dashboard
-
-<p align="center">
-  <img src="docs/screenshots/main-dashboard.png" width="1200">
-</p>
-
----
-
-## Snapshot Publishing
-
-<p align="center">
-  <img src="docs/screenshots/snapshot-publish.png" width="1200">
-</p>
-
----
-
-## Repository Management
-
-<p align="center">
-  <img src="docs/screenshots/repository-management.png" width="1200">
-</p>
 
 ---
 
