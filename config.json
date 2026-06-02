@@ -1,0 +1,16 @@
+{
+  "simplestreams": {
+    "name": "scottibyte",
+    "publicUrl": "https://images.scottibyte.com",
+    "sshHost": "192.168.80.88",
+    "sshUser": "scott",
+    "webRoot": "/var/www/html",
+    "imageDir": "/var/www/html/images"
+  },
+  "app": {
+    "appName": "ScottiBYTE Incus Forge",
+    "version": "v1.1",
+    "githubReleasesUrl": "https://github.com/ScottiBYTE/incusforge/releases",
+    "donateUrl": "https://www.paypal.com/paypalme/ScottiBYTE"
+  }
+}

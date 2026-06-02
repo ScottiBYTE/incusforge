@@ -1,0 +1,20 @@
+services:
+  incusforge:
+    build: .
+    image: scottibyte/incusforge:latest
+    container_name: incusforge
+    restart: unless-stopped
+
+    ports:
+      - "80:3030"
+
+    environment:
+      PORT: "3030"
+      HOME: /home/scott
+      INCUS_CONF: /incus-client
+      CONFIG_PATH: /app/config.json
+
+    volumes:
+      - ${HOME}/.config/incus:/incus-client:ro
+      - ${HOME}/.ssh:/home/scott/.ssh:ro
+      - ./config.json:/app/config.json:ro

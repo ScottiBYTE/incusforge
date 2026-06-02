@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ScottiBYTE Incus Forge</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>ScottiBYTE Incus Forge</h1>
+    <div class="subtitle">Build • Publish • Distribute Incus Custom Images</div>
+  </div>
+
+  <div class="header-side">
+    <div class="top-stats">
+      <div class="stat-card"><div class="stat-label">Containers</div><div class="stat-value" id="statContainers">0</div></div>
+      <div class="stat-card"><div class="stat-label">Local Images</div><div class="stat-value" id="statImages">0</div></div>
+      <div class="stat-card"><div class="stat-label">Repo Images</div><div class="stat-value" id="statRepo">0</div></div>
+      <div class="stat-card"><div class="stat-label">Repo Size</div><div class="stat-value" id="statRepoSize">0 MiB</div></div>
+    </div>
+
+    <div class="header-actions">
+      <a id="versionPill" class="header-pill version-pill" href="https://github.com/ScottiBYTE/incusforge/releases" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a id="donateButton" class="header-pill donate-pill" href="https://www.paypal.com/paypalme/ScottiBYTE" target="_blank" rel="noopener noreferrer">❤️ Donate</a>
+      <button id="themeToggle" class="header-pill theme-pill" type="button">☀ Light</button>
+    </div>
+  </div>
+</header>
+
+<div class="statusbar working" id="statusbar">Loading...</div>
+
+<div class="layout">
+
+  <section class="pane">
+    <div class="pane-title">
+      <div class="pane-title-row">
+        <div>
+          <h2>1. Containers</h2>
+          <div class="hint">Publish running containers or expand a container to publish snapshots.</div>
+        </div>
+        <input id="containerSearch" class="searchbox" placeholder="Search containers...">
+      </div>
+    </div>
+    <div class="pane-body">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort-table="containers" data-sort-key="remote">Remote</th>
+            <th data-sort-table="containers" data-sort-key="name">Name</th>
+            <th data-sort-table="containers" data-sort-key="status">Status</th>
+            <th data-sort-table="containers" data-sort-key="type">Type</th>
+            <th>Publish Alias</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="containers"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-title">
+      <div class="pane-title-row">
+        <div>
+          <h2>2. Local Images</h2>
+          <div class="hint">Edit Alias or Description, then press Enter to save. Push sends an image to SimpleStreams.</div>
+        </div>
+        <input id="imageSearch" class="searchbox" placeholder="Search local images...">
+      </div>
+    </div>
+    <div class="pane-body">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort-table="images" data-sort-key="remote">Remote</th>
+            <th data-sort-table="images" data-sort-key="alias">Alias</th>
+            <th data-sort-table="images" data-sort-key="fingerprint">Fingerprint</th>
+            <th data-sort-table="images" data-sort-key="description">Description</th>
+            <th data-sort-table="images" data-sort-key="architecture">Arch</th>
+            <th data-sort-table="images" data-sort-key="size">Size</th>
+            <th data-sort-table="images" data-sort-key="type">Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="images"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pane">
+    <div class="pane-title">
+      <div class="pane-title-row">
+        <div>
+          <h2>3. SimpleStreams Repository</h2>
+          <div class="hint">Edit Alias or Description, then press Enter to save. Use Refresh after external changes.</div>
+        </div>
+        <div class="repo-tools">
+          <button class="repo" id="repoHealth">Health</button>
+          <button class="repo" id="repoBootstrap">Bootstrap</button>
+          <button class="repo" id="repoRefresh">Refresh Repo</button>
+          <input id="repoSearch" class="searchbox" placeholder="Search repository images...">
+        </div>
+      </div>
+    </div>
+    <div class="pane-body">
+      <div id="repoPanel" class="repo-panel hidden">
+        <div class="repo-panel-header">
+          <strong id="repoPanelTitle">SimpleStreams</strong>
+          <button class="smallbtn" id="repoPanelClose">Close</button>
+        </div>
+        <div id="repoPanelContent"></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th data-sort-table="repo" data-sort-key="remote">Repo</th>
+            <th data-sort-table="repo" data-sort-key="alias">Alias</th>
+            <th data-sort-table="repo" data-sort-key="fingerprint">Fingerprint</th>
+            <th data-sort-table="repo" data-sort-key="description">Description</th>
+            <th data-sort-table="repo" data-sort-key="architecture">Arch</th>
+            <th data-sort-table="repo" data-sort-key="size">Size</th>
+            <th data-sort-table="repo" data-sort-key="type">Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="repoImages"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  async function loadAppConfig() {
+    const defaults = {
+      appName: "ScottiBYTE Incus Forge",
+      version: "unknown",
+      githubReleasesUrl: "https://github.com/ScottiBYTE/incusforge/releases",
+      donateUrl: "https://www.paypal.com/paypalme/ScottiBYTE"
+    };
+
+    let appConfig = defaults;
+
+    try {
+      const res = await fetch("/api/config?_=" + Date.now(), { cache: "no-store" });
+      if (res.ok) {
+        const payload = await res.json();
+        appConfig = { ...defaults, ...(payload.app || {}) };
+      }
+    } catch (err) {
+      console.warn("Using default app config", err);
+    }
+
+    const versionPill = document.getElementById("versionPill");
+    if (versionPill) {
+      versionPill.href = appConfig.githubReleasesUrl;
+      versionPill.textContent = `GitHub ${appConfig.version}`;
+      versionPill.title = `View ${appConfig.appName} ${appConfig.version} on GitHub`;
+    }
+
+    const donateButton = document.getElementById("donateButton");
+    if (donateButton) {
+      donateButton.href = appConfig.donateUrl;
+      donateButton.title = `Support ${appConfig.appName} development`;
+    }
+
+    document.title = appConfig.appName;
+  }
+
+  function applyTheme(theme) {
+    const selected = theme === "light" ? "light" : "dark";
+    document.body.classList.toggle("light", selected === "light");
+
+    const button = document.getElementById("themeToggle");
+    if (button) {
+      button.textContent = selected === "light" ? "☾ Dark" : "☀ Light";
+    }
+
+    localStorage.setItem("incusForgeTheme", selected);
+  }
+
+  function toggleTheme() {
+    const current = localStorage.getItem("incusForgeTheme") || "dark";
+    applyTheme(current === "light" ? "dark" : "light");
+  }
+
+  loadAppConfig();
+  applyTheme(localStorage.getItem("incusForgeTheme") || "dark");
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const themeToggle = document.getElementById("themeToggle");
+    if (themeToggle) {
+      themeToggle.addEventListener("click", toggleTheme);
+    }
+  });
+</script>
+
+<script src="/app.js"></script>
+
+</body>
+</html>
