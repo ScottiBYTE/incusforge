@@ -513,14 +513,17 @@ If you find Incus Forge useful:
 
 # 🌐 Community
 
-## YouTube
+## Community Support
 
-https://youtube.com/@ScottiBYTE
+Need help with Incus Forge, Docker deployment, Incus profile management, container creation, or ScottiBYTE utilities?
 
-## Discussion
+Join the ScottiBYTE Rocket.Chat community:
 
-https://discussion.scottibyte.com
+[Join ScottiBYTE Rocket.Chat](https://go.rocket.chat/invite?host=chat.scottibyte.com&path=invite%2FaCh2oW)
 
-## Chat
+New users can start in `#general`. From there, you can find other ScottiBYTE project channels and community discussions.
 
-https://chat.scottibyte.com
+For bugs and feature requests, please continue to use GitHub Issues.
+For quick questions and community discussion, use Rocket.Chat.
+```
+
